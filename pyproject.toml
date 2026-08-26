@@ -1,0 +1,24 @@
+[project]
+name = "hf-course"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ale-py>=0.12.0",
+    "cmake>=4.4.2",
+    "ffmpeg>=1.4",
+    "gymnasium[accept-rom-license,atari,box2d,other]>=1.3.0",
+    "huggingface>=0.0.1",
+    "huggingface-sb3>=3.0",
+    "ipykernel>=7.3.0",
+    "ipywidgets>=8.1.8",
+    "moviepy>=2.2.1",
+    "pip>=26.2.1",
+    "pyvirtualdisplay>=3.0",
+    "rich>=15.0.0",
+    "stable-baselines3[extra]>=2.9.0",
+    "swig>=4.4.1",
+    "tensorboard>=2.21.0",
+    "tqdm>=4.70.0",
+]
