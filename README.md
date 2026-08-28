@@ -27,19 +27,24 @@ L'objectif est de :
 └── pyproject.toml           # Dépendances du projet
 ```
 
-## Résultats actuels (vidéos)
+## Résultats actuels 
 
-Les vidéos suivantes montrent l'état actuel des agents entraînés :
 
-| Environnement | Vidéo | Détails |
-|---|---|---|
-| FrozenLake | [frozen_lake.mp4](videos/frozen_lake.mp4) | 7s - 256x256 |
-| MountainCar | [mountain-car-episode-0.mp4](videos/mountain-car-episode-0.mp4) | 6.7s - 600x400 - 201 frames |
-| MountainCar | [mountain-car-episode-3.mp4](videos/mountain-car-episode-3.mp4) | 6.7s - 600x400 - 201 frames |
-| MountainCar | [rl-video-episode-0.mp4](videos/rl-video-episode-0.mp4) | 6.7s - 600x400 - 201 frames |
-| Taxi-v4 | [taxi-v4.mp4](videos/taxi-v4.mp4) | 13s - 560x352 |
+FrozenLake  
 
-Ces vidéos servent de vitrine rapide pour voir le comportement des politiques apprises sur différents jeux RL.
+<video src="videos\frozen_lake.mp4" controls width="100%"></video>
+
+
+MountainCar 
+
+<video src="videos/mountain-car-episode-0.mp4" controls width="100%"></video>
+
+
+
+
+Taxi-v4 
+
+<video src="videos/taxi-v4.mp4" controls width="100%"></video>
 
 ## Stack utilisée
 
