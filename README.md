@@ -1,6 +1,7 @@
 <div align="center">
 
 # 🎮 RL-Games
+Laboratoire pratique consacré au Reinforcement Learning avec Python, Gymnasium, PyTorch et Stable-Baselines3. Le projet suit une progression concrète : comprendre l'algorithme, entraîner un agent, mesurer ses performances, puis observer son comportement.
 
 ### Un laboratoire d'apprentissage par renforcement (Reinforcement Learning), pensé pour apprendre en codant 🤖
 
@@ -38,6 +39,7 @@ Les notebooks sont organisés comme une vraie progression : on part des fondamen
 | 5 | Actor-Critic | A2C | 🤖 Panda-Gym (robotique) | [`PPO et A2C/`](PPO%20et%20A2C/) |
 | 6 | PPO | PPO, Actor-Critic, GAE, clipping | 🚀 LunarLander | [`lunar-lander.ipynb`](lunar-lander.ipynb) · [`PPO et A2C/`](PPO%20et%20A2C/) |
 | 7 | Aller plus loin | Sample Factory, RL avancé | 🔥 Doom (pixels) | [`PPO et A2C/`](PPO%20et%20A2C/) |
+| 8 | Environnement personnalisé | API Gymnasium, espaces, rendu, vectorisation | 🐦 Flappy Bird | [`flappy-bird.ipynb`](flappy-bird.ipynb) |
 
 **Une idée forte du parcours** : les méthodes *value-based* (on apprend « combien vaut chaque action ») vs *policy-based* (on apprend directement la politique). Le dépôt explore les deux familles, du discret au continu, avec des notes pédagogiques dédiées :
 
@@ -59,7 +61,7 @@ Chaque agent entraîné a été évalué et filmé. Les vidéos ci-dessous se la
       <video src="videos/frozen_lake.mp4" autoplay muted loop playsinline controls width="100%"></video>
     </td>
     <td align="center">
-      <strong>🚕 Taxi-v3 — Q-Learning</strong><br>
+      <strong>🚕 Taxi-v4 — Q-Learning</strong><br>
       <em>prendre le passager et le déposer</em><br>
       <video src="videos/taxi-v4.mp4" autoplay muted loop playsinline controls width="100%"></video>
     </td>
@@ -90,15 +92,60 @@ Les mêmes environnements, résolus cette fois par nos **propres implémentation
       <video src="videos/frozen-lake-scratch-episode-0.mp4" autoplay muted loop playsinline controls width="100%"></video>
     </td>
     <td align="center">
-      <strong>🚕 Taxi-v3 — Q-Learning maison</strong><br>
+      <strong>🚕 Taxi-v4 — Q-Learning maison</strong><br>
       <em>Q-table 500 × 6 écrite en NumPy</em><br>
       <video src="videos/taxi-scratch-episode-0.mp4" autoplay muted loop playsinline controls width="100%"></video>
     </td>
   </tr>
 </table>
 
+### 🐦 Flappy Bird — environnement codé de zéro + PPO
+
+<div align="center">
+  <strong>🐦 Flappy Bird — PPO sur un environnement Gymnasium maison</strong><br>
+  <em>l'agent ne touche plus aucun tuyau et joue jusqu'à la limite de l'épisode</em><br>
+  <video src="videos/flappy-bird.mp4" autoplay muted loop playsinline controls width="60%"></video>
+</div>
+
 > ⚠️ **Note technique** : les navigateurs n'autorisent l'autoplay que si la vidéo est **sans son** (`muted`) — c'est pourquoi les vidéos sont volontairement muettes. Si l'autoplay ne se déclenche pas chez vous, appuyez simplement sur ▶️.
 
+## 🐦 Focus : Flappy Bird, de l'environnement à l'agent
+
+Ici, pas d'environnement tout prêt : le jeu est **écrit de zéro** comme un environnement Gymnasium (`FlappyBirdEnv`, enregistré sous `FlappyBird-v0`), puis résolu avec PPO. Tout se passe dans [`flappy-bird.ipynb`](flappy-bird.ipynb).
+
+### Comment c'est construit
+
+| Élément | Choix |
+|---|---|
+| Actions | `Discrete(2)` : `0` = ne rien faire, `1` = battre des ailes |
+| Observation | 5 valeurs normalisées dans `[-1, 1]` : hauteur de l'oiseau, vitesse verticale, distance horizontale au prochain tuyau, distances au haut et au bas du trou |
+| Physique | gravité 900, impulsion −320, tuyaux à 180 unités/s, trou de 170, 30 FPS |
+| Récompenses | `+0.1` par pas en vie, `+5` par tuyau franchi, `−10` en cas de collision |
+| Fin d'épisode | `terminated` si collision (tuyau, sol ou plafond), `truncated` à 3000 pas (100 s de jeu) |
+
+L'environnement passe d'abord un *smoke test* (contrat `reset()`/`step()`, observations valides) avant tout entraînement.
+
+**Entraînement** : PPO de Stable-Baselines3 (`MlpPolicy`), 8 environnements en parallèle (`make_vec_env`), `learning_rate=3e-4`, `n_steps=2048`, `batch_size=64`, `gamma=0.99`. Un `EvalCallback` évalue l'agent tous les 10 000 pas et garde le meilleur modèle. Le budget prévu était de 1M de pas, mais l'entraînement a été arrêté plus tôt : l'agent ne tombait déjà plus du tout.
+
+### Résultats
+
+Évaluation finale sur 20 épisodes indépendants (politique déterministe) :
+
+| Métrique | Résultat |
+|---|---|
+| Taux de survie (3000 pas sans collision) | **100 %** |
+| Tuyaux franchis par partie | **80** (moyenne et médiane, aucune variance) |
+| Récompense par épisode | **700.00 ± 0.00** (3000 × 0.1 + 80 × 5) |
+
+Pendant l'entraînement, l'agent atteignait déjà la limite de 3000 pas à chaque évaluation dès **~640 000 pas**.
+
+> 🐛 **Bug corrigé** : la première version ne comptait jamais les tuyaux franchis (score toujours à 0, bonus `+5` jamais versé). Les évaluations pendant l'entraînement plafonnaient donc à 300 (3000 × 0.1). Le modèle a appris **uniquement à survivre**, et ça suffit pour jouer parfaitement. Une fois le comptage corrigé, le même modèle, sans réentraînement, passe bien ses 80 tuyaux par partie.
+
+**Jouer soi-même** : [`flappy_bird.py`](flappy_bird.py) est une version jouable du jeu en Pygame (`ESPACE` ou clic pour battre des ailes, `Q`/`ÉCHAP` pour quitter) :
+
+```bash
+uv run python flappy_bird.py
+```
 
 ## Modèles entraînés
 
@@ -110,12 +157,18 @@ Les agents les plus aboutis sont sauvegardés dans [`models/`](models/) et peuve
 | `q-table-taxi.pkl` | 🚕 Taxi-v3 | Q-Learning (table 500×6) |
 | `mountain-car.pt` | ⛰️ MountainCar-v0 | DQN |
 | `lunarlanderdiscret-actor.pt` / `lunarlanderdiscret-critic.pt` | 🚀 LunarLander-v3 | PPO (Actor-Critic) |
+| `flappy_ppo_final.zip` | 🐦 Flappy Bird personnalisé | PPO |
 
 ## 🚀 Installer et lancer
 
 Le projet est géré avec [`uv`](https://docs.astral.sh/uv/) (Python 3.12+) :
 
+```bash
+uv sync
+uv run jupyter lab
+```
 
+Dans VS Code, ouvrez ensuite le notebook voulu et sélectionnez l'environnement `.venv` comme kernel Jupyter. Pour rejouer Flappy Bird, exécutez d'abord les cellules de définition de l'environnement, puis chargez `models/flappy_ppo_final.zip`.
 
 
 ## 🛠️ Stack technique

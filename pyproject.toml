@@ -13,6 +13,7 @@ dependencies = [
     "huggingface-sb3>=3.0",
     "ipykernel>=7.3.0",
     "ipywidgets>=8.1.8",
+    "jupyter>=1.1.1",
     "moviepy>=2.2.1",
     "nbstripout>=0.9.1",
     "pip>=26.2.1",
